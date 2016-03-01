@@ -3,7 +3,8 @@ title: "watsi's patient data exploration"
 output: html_document
 ---
 
-This is an analysis of patient data from watsi.org. The link to dataset is : https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit
+This is an analysis of patient data from watsi.org. The link to dataset is : [Watsi data](https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit "Watsi dataset")
+
 
 watsi.org brings kickstarter model to health needs of induviduals from developing countries. Users can fund a patient, once a target for the funds needed to be raised is reached, the funds gets transferred for treating patients. 100% of proceeds from users go directly to the patient's fund. 
 
@@ -14,11 +15,14 @@ library(dplyr)
 library(ggplot2)
 
 patientDF <- read.csv("Patients.csv", sep = ',')
+
+# plot text adjustments
+eleText <- element_text(size=10)
 ```
 
 
 Load the dataset. The following are the columns in the dataset:
-```{r}
+```{r, echo=FALSE}
 names(patientDF)
 ```
 
@@ -37,14 +41,16 @@ ggplot(data = patientDF, aes(x=Cost)) +
   scale_x_continuous(breaks = seq(0, max(patientDF$Cost), by=500)) +
   labs(title = "Histogram of Cost. binwidth = 500") +
   ylab("Patient count") +
-  xlab("Cost in $")
+  xlab("Cost in $") + 
+  theme(plot.title = eleText, axis.title = eleText)
 
 ggplot(data = patientDF, aes(x=Cost)) +
   geom_histogram(binwidth = 50) +
   scale_x_continuous(breaks = seq(0, max(patientDF$Cost), by=250)) +
   labs(title = "Histogram of Cost. binwidth = 50") +
   ylab("Patient count") +
-  xlab("Cost in $")
+  xlab("Cost in $") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 In fact, as we see below the median is $512 and the mean is $604.5
@@ -64,7 +70,8 @@ ggplot(data = pCount_byCountry, aes(x = Country, y = count)) +
   geom_bar(stat = "identity") +
   coord_flip() +
   labs(title = "Patient Count in Countries") +
-  ylab("Patient count")
+  ylab("Patient count") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 Now let's take a look at the costs per country. The total costs funded per country closely resembles the previous graph, but Cambodia no longer has the highest total costs. This perhaps might be related to lower medical cost in Cambodia?
@@ -78,8 +85,8 @@ ggplot(data = cost_byCountry, aes(x = Country, y = costCount)) +
   geom_bar(stat= "identity") +
   coord_flip() +
   scale_y_continuous(ylab("Total Cost in $1000"), breaks = seq(0, 800000, by=100000), labels = seq(0, 800, by = 100)) +
-  labs(title = "Total cost per country")
-
+  labs(title = "Total cost per country") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 A look at mean costs by country, it seems to be the case that mean medical cost needed are indeed lowest in Cambodia. However, we should be cautious to claim that outright, since there could be other factors affecting "cost" in cambodia, but there seems to be some indication towards that. 
@@ -93,10 +100,11 @@ ggplot(data = meancost_byCountry, aes(x = Country, y = costCount)) +
   geom_bar(stat= "identity") +
   coord_flip() +
   scale_y_continuous(ylab("Mean Cost in $")) +
-  labs(title = "Mean cost per country")
+  labs(title = "Mean cost per country") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
-Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can caluculate the number of days it took to fund each patient, we call this column "numDaysFundd". Let us take a look at how "numDaysFunded" changes for various factors. 
+Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can caluculate the number of days it took to fund each patient, we call this column "numDaysFunded". Let us take a look at how "numDaysFunded" changes for various factors. 
 
 Following is a summary of number of days it took to fund patients. It is a bit suprising and perhaps impressive that on average it took just 3.271 days to fund patients.
 ```{r, echo=FALSE}
@@ -104,30 +112,44 @@ patientDF$numDaysFunded <- as.numeric(as.Date(patientDF$Date.Funded) - as.Date(p
 #nonNADaysFundedData = patientDF[!is.na(patientDF$numDaysFunded),]
 nonNADaysFundedData = subset(patientDF, !is.na(patientDF$numDaysFunded))
 summary(nonNADaysFundedData$numDaysFunded)
+
 ```
 
-```{r, echo=FALSE, message=FALSE, error=FALSE}
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE}
+meanNumDays = mean(nonNADaysFundedData$numDaysFunded);
 ggplot(data = nonNADaysFundedData, aes(x=numDaysFunded)) +
   geom_histogram(binwidth = 1) +
   scale_x_continuous(limits = c(0, 30), xlab("Number of days for funding"), breaks = seq(0, 30, by=5)) +
-  geom_vline(xintercept = mean(nonNADaysFundedData$numDaysFunded), color = "blue")
+  geom_vline(xintercept = meanNumDays, color = "blue") +
+  geom_text(aes(x=meanNumDays, label="mean = 3.271", y= 1000), colour="blue", angle=90, vjust = -0.4, fontface = 'plain') +
+  labs(title = "Histogram of Number of Days for successfully funding a patient. Binwidth = 1 day") + 
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 
 ```{r, echo=FALSE, eval= FALSE}
 ggplot(data = patientDF, aes(x=monthFunded)) +
   geom_histogram(binwidth = 1) +
-  scale_x_continuous(labels = c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), breaks = seq(1.5, 12.5, by = 1), limits = c(1, 13) )
+  scale_x_continuous(labels = c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), breaks = seq(1.5, 12.5, by = 1), limits = c(1, 13) ) +
 ```
 
-```{r, echo=FALSE}
-daysFunded_byMonth <- group_by(nonNADaysFundedData, monthFundedWord)
-meanNumDaysFunded_byMonth <- summarise(daysFunded_byMonth, meanDaysFunded = mean(numDaysFunded))
+```{r, echo=FALSE, warning=FALSE}
+daysFunded_byMonth <- group_by(nonNADaysFundedData, monthFunded, monthFundedWord)
+meanNumDaysFunded_byMonth <- summarise(arrange(daysFunded_byMonth, monthFunded), meanDaysFunded = mean(numDaysFunded))
+
+# fix levels from Jan - Dec (instead of alphabetical order)
+nonNADaysFundedData$monthFundedWord <- factor(nonNADaysFundedData$monthFundedWord, levels = meanNumDaysFunded_byMonth$monthFundedWord)
+
 ggplot(data = nonNADaysFundedData, aes(x=numDaysFunded)) +
   geom_histogram(binwidth = 1) +
   scale_x_continuous(limits = c(0, 30), xlab("Number of days for funding"), breaks = seq(0, 30, by=5)) +
-   geom_vline(data = meanNumDaysFunded_byMonth, aes(xintercept=meanDaysFunded), color = "blue") +
-  facet_wrap(~monthFundedWord)
+  facet_wrap(~monthFundedWord) +
+  labs(title = "Histogram of Number of Days for successfully funding a patient grouped by Month. Binwidth = 1 day.") +
+  theme(plot.title = eleText, axis.title = eleText)
+
+#geom_vline(data = meanNumDaysFunded_byMonth, aes(xintercept=meanDaysFunded), color = "blue") +
+#  geom_text(data = meanNumDaysFunded_byMonth, aes(x=meanDaysFunded, label=round(meanDaysFunded, digits = 1), y= 275), colour="blue", angle=90, vjust = 1.1, fontface = 'plain') +
 ```
 
 ```{r, echo=FALSE}
@@ -139,7 +161,11 @@ pcountByMonthFunded <- summarise(pbyMonthFunded, count = n())
 pcountByMonthFunded <- pcountByMonthFunded[!is.na(pcountByMonthFunded$monthFunded),]
 ggplot(data = pcountByMonthFunded, aes(x=monthFunded, y = count)) +
   geom_bar(stat = "identity") +
-  scale_x_continuous(labels = c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), breaks = seq(1, 12, by = 1), limits = c(0, 13) )
+  scale_x_continuous(labels = c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), breaks = seq(1, 12, by = 1), limits = c(0, 13) ) +
+  labs(title = "Number of patients funded per month. Data from 2012-2016.") +
+  xlab("Month") +
+  ylab("Count") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 ```{r, eval = FALSE, echo=FALSE}
@@ -149,7 +175,8 @@ ggplot(data = patientDF, aes(x=monthFunded)) +
   facet_wrap(~yearFunded, ncol = 1) +
   ylab("Patients Funded") +
   xlab("Month") +
-  labs(title = "Patients funded per month from 2012-2016")
+  labs(title = "Patients funded per month from 2012-2016") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
 ```{r, echo=FALSE}
@@ -160,10 +187,11 @@ ggplot(data = nonNAMonthsData, aes(x=monthFunded)) +
   facet_wrap(~yearFunded, ncol = 1) +
   ylab("Patients Funded") +
   xlab("Month") +
-  labs(title = "Patients funded per month from 2012-2016")
+  labs(title = "Patients funded per month from 2012-2016") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```
 
-```{r, echo= FALSE}
+```{r, echo= FALSE, warning=FALSE}
 pdf_byYearFunded <- group_by(patientDF, yearFunded)
 pbyYearFunded <- summarise(pdf_byYearFunded, count = n())
 # There are some NA values here (12), which are excluded
@@ -171,5 +199,6 @@ ggplot(data = pbyYearFunded, aes(x = yearFunded, y = count)) +
   geom_bar(stat = "identity") +
   xlab("Year") +
   ylab("Patient Count") +
-  labs(title = "Patient successfully funded per year")
+  labs(title = "Patient successfully funded per year") +
+  theme(plot.title = eleText, axis.title = eleText)
 ```

@@ -42,7 +42,7 @@ if true
 	urls = IO.readlines("watsi_patient_url.txt")
 
 	#genderResults = Array.new()
-	urls[417,1000].each do |u|
+	urls[1417,500].each do |u|
 		puts determine_gender( get_text("https://watsi.org/profile/TTn1fNaj"))
 		sleep(5)
 	end
