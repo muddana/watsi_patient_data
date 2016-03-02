@@ -3,12 +3,12 @@ title: "watsi's patient data exploration"
 output: html_document
 ---
 
-This is an analysis of patient data from watsi.org. The link to dataset is : [Watsi data](https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit "Watsi dataset")
+This is an analysis of patient data from watsi.org. The link to data-set is : [Watsi data](https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit "Watsi dataset")
 
 
-watsi.org brings kickstarter model to health needs of induviduals from developing countries. Users can fund a patient, once a target for the funds needed to be raised is reached, the funds gets transferred for treating patients. 100% of proceeds from users go directly to the patient's fund. 
+watsi.org brings kickstarter model to health needs of individuals from developing countries. Users can fund a patient, once a target for the funds needed to be raised is reached, the funds gets transferred for treating patients. 100% of proceeds from users go directly to the patient's fund. 
 
-We are going to look at the patient data and explore various parameters in this dataset. 
+We are going to look at the patient data and explore various parameters in this data-set. 
 
 ```{r, echo=FALSE, message=FALSE}
 library(dplyr)
@@ -21,19 +21,19 @@ eleText <- element_text(size=10)
 ```
 
 
-Load the dataset. The following are the columns in the dataset:
+Load the data set. The following are the columns in the data set:
 ```{r, echo=FALSE}
 names(patientDF)
 ```
 
-To Analyze the data, we will add two more columns to the dataset - "yearFunded" & "monthFunded".
+To Analyze the data, we will add two more columns to the data set - "yearFunded" & "monthFunded".
 ```{r, echo=FALSE}
 patientDF$yearFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%Y"))
 patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
 patientDF$monthFundedWord <- strftime(as.Date(patientDF$Date.Funded), format = "%b")
 ```
 
-Let us take a look at the cost distribution. Following are two histograms of cost with binwidth 500, 50 respectively. As we see majority of the "Cost" values are in range 0-500. i.e., most patient funding needed is less than $500.
+Let us take a look at the cost distribution. Following are two histograms of cost with bin-width 500, 50 respectively. As we see majority of the "Cost" values are in range 0-500. i.e., most patient funding needed is less than $500.
 ```{r, echo=FALSE}
 patientDF$Cost <- as.numeric(gsub("[$,]","", patientDF$Cost))
 ggplot(data = patientDF, aes(x=Cost)) +
@@ -89,7 +89,7 @@ ggplot(data = cost_byCountry, aes(x = Country, y = costCount)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-A look at mean costs by country, it seems to be the case that mean medical cost needed are indeed lowest in Cambodia. However, we should be cautious to claim that outright, since there could be other factors affecting "cost" in cambodia, but there seems to be some indication towards that. 
+A look at mean costs by country, it seems to be the case that mean medical cost needed are indeed lowest in Cambodia. However, we should be cautious to claim that outright, since there could be other factors affecting "cost" in Cambodia, but there seems to be some indication towards that. 
 
 ```{r, echo=FALSE}
 meancost_byCountry <- summarise(pByCountry, costCount = mean(Cost))
@@ -104,9 +104,9 @@ ggplot(data = meancost_byCountry, aes(x = Country, y = costCount)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can caluculate the number of days it took to fund each patient, we call this column "numDaysFunded". Let us take a look at how "numDaysFunded" changes for various factors. 
+Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can calculate the number of days it took to fund each patient, we call this column "numDaysFunded". Let us take a look at how "numDaysFunded" changes for various factors. 
 
-Following is a summary of number of days it took to fund patients. It is a bit suprising and perhaps impressive that on average it took just 3.271 days to fund patients.
+Following is a summary of number of days it took to fund patients. It is a bit surprising and perhaps impressive that on average it took just 3.271 days to fund patients.
 ```{r, echo=FALSE}
 patientDF$numDaysFunded <- as.numeric(as.Date(patientDF$Date.Funded) - as.Date(patientDF$Date.Posted))
 #nonNADaysFundedData = patientDF[!is.na(patientDF$numDaysFunded),]
@@ -152,6 +152,8 @@ ggplot(data = nonNADaysFundedData, aes(x=numDaysFunded)) +
 #  geom_text(data = meanNumDaysFunded_byMonth, aes(x=meanDaysFunded, label=round(meanDaysFunded, digits = 1), y= 275), colour="blue", angle=90, vjust = 1.1, fontface = 'plain') +
 ```
 
+Following is a consolidated view of all patients funded during Watsi's existent, grouped by month. December seems to be most philanthropic month, which is not too surprising considering December is the biggest month for charities and other non-profit organizations when it comes to fund raising. 
+
 ```{r, echo=FALSE}
 patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
 
@@ -168,6 +170,8 @@ ggplot(data = pcountByMonthFunded, aes(x=monthFunded, y = count)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
+View of the same chart as above but grouped by year. 
+
 ```{r, eval = FALSE, echo=FALSE}
 ggplot(data = patientDF, aes(x=monthFunded)) +
   geom_histogram(binwidth = 1) +
@@ -179,6 +183,7 @@ ggplot(data = patientDF, aes(x=monthFunded)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
+Considering that the year just started, looks like Watsi has got to a good start, especially considering the uptick in number of patients funded in February compared to previous year.  
 ```{r, echo=FALSE}
 nonNAMonthsData <- patientDF[!is.na(patientDF$monthFunded), ]
 ggplot(data = nonNAMonthsData, aes(x=monthFunded)) +
@@ -190,6 +195,8 @@ ggplot(data = nonNAMonthsData, aes(x=monthFunded)) +
   labs(title = "Patients funded per month from 2012-2016") +
   theme(plot.title = eleText, axis.title = eleText)
 ```
+
+The upward trend of number of patients funded year-over-year is clear in the following chart.
 
 ```{r, echo= FALSE, warning=FALSE}
 pdf_byYearFunded <- group_by(patientDF, yearFunded)
