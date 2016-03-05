@@ -1,14 +1,20 @@
 ---
-title: "watsi's patient data exploration"
+title: "Draft : watsi's patient data exploration"
 output: html_document
 ---
 
-This is an analysis of patient data from watsi.org. The link to data-set is : [Watsi data](https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit "Watsi dataset")
+This is an analysis of patient data from watsi.org. The link to data-set is : [Watsi data](https://docs.google.com/spreadsheets/d/1tZq47h6jg7NX4ddhTS_H8JFVfLZiDbxwwdQD47_ow64/edit "Watsi dataset"). You can find the Rmd file used for generating this document on [ github](https://github.com/muddana/watsi_patient_data "Rmd file")
 
 
-watsi.org brings kickstarter model to health needs of individuals from developing countries. Users can fund a patient, once a target for the funds needed to be raised is reached, the funds gets transferred for treating patients. 100% of proceeds from users go directly to the patient's fund. 
+watsi.org brings kickstarter model to healthcare needs of individuals from developing/under-developed countries. Users can fund a patient in any denomination, once a target for the funds needed is reached, funds gets transferred for treating the patient through a medical partner in the field. 100% of proceeds from the user go directly to the patient's medical needs.  
 
-We are going to look at the patient data and explore various parameters in this data-set. 
+We look at the patient data set publicly available and explore various parameters in this data set. We explore the following :
+
+1. Medical costs of the patients, medical costs grouped by country. 
+2. Number of days it took to fund patients, this is important factor, the shorter the better for watsi and patient's health outcome. We explore the same by seasonality (month of the year).
+3. Number of patients funded by month/year (seasonality)
+4. Patients by gender
+
 
 ```{r, echo=FALSE, message=FALSE}
 library(dplyr)
@@ -20,20 +26,23 @@ patientDF <- read.csv("Patients.csv", sep = ',')
 eleText <- element_text(size=10)
 ```
 
-
 Load the data set. The following are the columns in the data set:
 ```{r, echo=FALSE}
 names(patientDF)
 ```
 
-To Analyze the data, we will add two more columns to the data set - "yearFunded" & "monthFunded".
+As we see, some of the variables in the data set like "Case.ID" might not be useful for us, but other variables like "Profile.Url" contain a lot more information in them. For example, from the profile, we can extract the gender of the patient, or if a patient is an adult or not. We will use this information later in the exploration.
+
 ```{r, echo=FALSE}
+#To Analyze the data, we will add two more columns to the data set - "yearFunded" & "monthFunded".
 patientDF$yearFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%Y"))
 patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
 patientDF$monthFundedWord <- strftime(as.Date(patientDF$Date.Funded), format = "%b")
 ```
 
-Let us take a look at the cost distribution. Following are two histograms of cost with bin-width 500, 50 respectively. As we see majority of the "Cost" values are in range 0-500. i.e., most patient funding needed is less than $500.
+We take a look at the cost distribution. Following are two histograms of cost with bin-width 500, 50 respectively. As we see majority of the "Cost" values are in range 0-500. i.e., most patient funding needed is less than USD 500.
+
+With bin width 50, we see that the most costs are between USD 200-250 and a surprising peak at the end of the distribution at USD 1500 - 1550.
 ```{r, echo=FALSE}
 patientDF$Cost <- as.numeric(gsub("[$,]","", patientDF$Cost))
 ggplot(data = patientDF, aes(x=Cost)) +
@@ -53,12 +62,12 @@ ggplot(data = patientDF, aes(x=Cost)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-In fact, as we see below the median is $512 and the mean is $604.5
+As we see below, the median is USD 512 and the mean is USD 604.5
 ```{r, echo=FALSE}
 summary(patientDF$Cost)
 ```
 
-Now, let us take a look at the countries which patients belong to. As we see below, Cambodia has the highest number of patient, followed by Kenya and Tanzania. 
+Now, we take a look at the patients grouped by country. As we see in the figure below, Cambodia has the highest number of patients funded at 1695 patients, followed by Kenya and Tanzania at 1183 and 640 patients respectively.
 
 ```{r, echo=FALSE}
 pByCountry <- group_by(patientDF, Country)
@@ -74,7 +83,9 @@ ggplot(data = pCount_byCountry, aes(x = Country, y = count)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-Now let's take a look at the costs per country. The total costs funded per country closely resembles the previous graph, but Cambodia no longer has the highest total costs. This perhaps might be related to lower medical cost in Cambodia?
+Now we take a look at the costs grouped by country. Cost is the total funds transferred at the end of successful funding of a patient. The total costs per country is sum of all funds transferred grouped by country. 
+
+The total costs funded per country closely resembles the previous graph, but Cambodia no longer has the highest funds transferred. Kenya tops the beneficiary list receiving USD 814,505, followed by Tanzania and Guatemala at USD 543,612 and USD 452,301 respectively.
 
 ```{r, echo=FALSE}
 cost_byCountry <- summarise(pByCountry, costCount = sum(Cost))
@@ -84,12 +95,14 @@ cost_byCountry$Country <- factor(cost_byCountry$Country, levels = cost_byCountry
 ggplot(data = cost_byCountry, aes(x = Country, y = costCount)) +
   geom_bar(stat= "identity") +
   coord_flip() +
-  scale_y_continuous(ylab("Total Cost in $1000"), breaks = seq(0, 800000, by=100000), labels = seq(0, 800, by = 100)) +
-  labs(title = "Total cost per country") +
+  scale_y_continuous(ylab("Total Cost funded in $1000"), breaks = seq(0, 800000, by=100000), labels = seq(0, 800, by = 100)) +
+  labs(title = "Total costs funded per country") +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-A look at mean costs by country, it seems to be the case that mean medical cost needed are indeed lowest in Cambodia. However, we should be cautious to claim that outright, since there could be other factors affecting "cost" in Cambodia, but there seems to be some indication towards that. 
+Mean costs grouped by country indicates the mean funds transferred to a patient of a particular country at the end of a successful funding campaign.
+
+A look at mean costs by country, shows Nigeria as the country with highest mean cost in this data set. At the same time, Cambodia has the lowest mean cost, as we saw earlier, also has the most number of patients benefited of any country in this data set.
 
 ```{r, echo=FALSE}
 meancost_byCountry <- summarise(pByCountry, costCount = mean(Cost))
@@ -99,14 +112,14 @@ meancost_byCountry$Country <- factor(meancost_byCountry$Country, levels = meanco
 ggplot(data = meancost_byCountry, aes(x = Country, y = costCount)) +
   geom_bar(stat= "identity") +
   coord_flip() +
-  scale_y_continuous(ylab("Mean Cost in $")) +
-  labs(title = "Mean cost per country") +
+  scale_y_continuous(ylab("Mean Cost funded in $")) +
+  labs(title = "Mean cost funded per country") +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can calculate the number of days it took to fund each patient, we call this column "numDaysFunded". Let us take a look at how "numDaysFunded" changes for various factors. 
+Now, we explore Number of days it took to fund patients. Using the "Date.Posted" and "Date.Funded" we can calculate the number of days it took to fund each patient, we call this column "numDaysFunded". Let us take a look at how "numDaysFunded" changes for various factors. We also add two more columns to the data set - "yearFunded" & "monthFunded". This will help us explore number of days it took to fund a patient by seasonality(year, month).
 
-Following is a summary of number of days it took to fund patients. It is a bit surprising and perhaps impressive that on average it took just 3.271 days to fund patients.
+Following is a summary of number of days it took to successfully fund patients. On average it took just 3.271 days to fund patients.
 ```{r, echo=FALSE}
 patientDF$numDaysFunded <- as.numeric(as.Date(patientDF$Date.Funded) - as.Date(patientDF$Date.Posted))
 #nonNADaysFundedData = patientDF[!is.na(patientDF$numDaysFunded),]
@@ -152,7 +165,9 @@ ggplot(data = nonNADaysFundedData, aes(x=numDaysFunded)) +
 #  geom_text(data = meanNumDaysFunded_byMonth, aes(x=meanDaysFunded, label=round(meanDaysFunded, digits = 1), y= 275), colour="blue", angle=90, vjust = 1.1, fontface = 'plain') +
 ```
 
-Following is a consolidated view of all patients funded during Watsi's existent, grouped by month. December seems to be most philanthropic month, which is not too surprising considering December is the biggest month for charities and other non-profit organizations when it comes to fund raising. 
+Following is a consolidated view of all patients funded during Watsi's existence, grouped by month. December seems to be most philanthropic month, which is not too surprising considering December is the biggest month for charities and other non-profit organizations when it comes to fund raising. 
+
+A bit surprising is September, which is the second most philanthropic month in this data set.  
 
 ```{r, echo=FALSE}
 patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
@@ -183,7 +198,7 @@ ggplot(data = patientDF, aes(x=monthFunded)) +
   theme(plot.title = eleText, axis.title = eleText)
 ```
 
-Considering that the year just started, looks like Watsi has got to a good start, especially considering the uptick in number of patients funded in February compared to previous year.  
+Considering that the year just started, looks like Watsi has got to a good start, especially considering the uptick in number of patients funded in February 2016 compared to previous year.  
 ```{r, echo=FALSE}
 nonNAMonthsData <- patientDF[!is.na(patientDF$monthFunded), ]
 ggplot(data = nonNAMonthsData, aes(x=monthFunded)) +
@@ -201,11 +216,20 @@ The upward trend of number of patients funded year-over-year is clear in the fol
 ```{r, echo= FALSE, warning=FALSE}
 pdf_byYearFunded <- group_by(patientDF, yearFunded)
 pbyYearFunded <- summarise(pdf_byYearFunded, count = n())
+
+count_2016 <- pbyYearFunded[pbyYearFunded$yearFunded == 2016 & !is.na(pbyYearFunded$yearFunded),2]
+
 # There are some NA values here (12), which are excluded
 ggplot(data = pbyYearFunded, aes(x = yearFunded, y = count)) +
   geom_bar(stat = "identity") +
   xlab("Year") +
   ylab("Patient Count") +
   labs(title = "Patient successfully funded per year") +
-  theme(plot.title = eleText, axis.title = eleText)
+  theme(plot.title = eleText, axis.title = eleText) +
+  geom_hline(yintercept = 467, color = "green", linetype="dashed") + 
+  geom_text(aes(y=467, label="2016. Until Feb.", x= 2016), colour="green", vjust = -0.4, fontface = 'plain')
 ```
+
+There are a couple of parameters that are still being processed - gender, adult/child. These extra parameters will be interesting to explore. Collecting gender data is straightforward, counting pronouns from the profiles give an easy way to accurately estimate gender. Gender data can answer questions if in the data set, people are more likely to be more philanthropic towards a particular gender.
+
+However, collecting the data about a patient is adult/child is a bit more tricky. There are multiple ways to address this ranging from image analysis to crowd-sourcing. We are working on a manual tagging of the data using friends(from Facebook). Since the number of data points is ~5500, this data can be tagged by 20 people, each tagging 250 pictures. Data about adult/child can answer a similar question(s) - are people are more likely to fund a child compared to an adult ?
