@@ -1,11 +1,11 @@
 require 'rubygems'
-require 'nokogiri'         
+require 'nokogiri'
 require 'open-uri'
 require 'open_uri_redirections'
 
 def get_text(url)
 	begin
-		page = Nokogiri::HTML(open(url, :allow_redirections => :safe))   
+		page = Nokogiri::HTML(open(url, :allow_redirections => :safe))
 		return page.css("div.real_writing").text
 	rescue Exception => e
 		return ""
@@ -16,12 +16,12 @@ def determine_gender(text)
 	# set initial male female word count
 	mCount = 0; wCount = 0;
 	words = text.gsub(".", " ").split(' ')
-	#puts words
+
 	words.each do |w|
-		if w == "his" || w == "him" || w == "he" || w == "boy" || w == "man" || w == "male"
+		if w == "his" || w == "him" || w == "he" || w == "boy" || w == "boys" || w == "man" || w == "male"
 			mCount +=1;
 		end
-		if w == "her" || w == "she" || w == "girl" || w == "woman" || w == "female"
+		if w == "her" || w == "she" || w == "girl" || w == "girls" || w == "woman" || w == "female" || w == "daughter"
 			wCount +=1;
 		end
 	end 
@@ -35,15 +35,15 @@ def determine_gender(text)
 	end
 end
 
-#puts determine_gender( get_text("http://www.watsi.org/profile/4W0zh9Kc"))
+puts determine_gender( get_text("https://watsi.org/profile/571f2fd8bc5a"))
 
-if true
+if false
 	urls = IO.readlines("watsi_patient_url.txt")
-
+	#puts urls.size
 	#genderResults = Array.new()
-	urls[1417,500].each do |u|
-		puts determine_gender( get_text("https://watsi.org/profile/TTn1fNaj"))
-		sleep(5)
+	urls.each do |u|
+		puts determine_gender( get_text(u) )
+		sleep(4)
 	end
 	#genderResults.each do |g|
 	#	puts g
