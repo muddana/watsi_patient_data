@@ -11,7 +11,7 @@ watsi.org brings kickstarter model to healthcare needs of individuals from devel
 We look at the patient data set publicly available and explore various parameters in this data set. We explore the following :
 
 1. Medical costs of the patients, medical costs grouped by country. 
-2. Number of days it took to fund patients, this is important factor, the shorter the better for watsi and patient's health outcome. We explore the same by seasonality (month of the year).
+2. Number of days it took to fund patients, this is an important factor, the shorter it is, the better for watsi and patient's health outcome. We explore the same by seasonality (month of the year).
 3. Number of patients funded by month/year (seasonality)
 4. Patients by gender
 
@@ -35,9 +35,9 @@ As we see, some of the variables in the data set like "Case.ID" might not be use
 
 ```{r, echo=FALSE}
 #To Analyze the data, we will add two more columns to the data set - "yearFunded" & "monthFunded".
-patientDF$yearFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%Y"))
-patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
-patientDF$monthFundedWord <- strftime(as.Date(patientDF$Date.Funded), format = "%b")
+patientDF$yearFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded, format="%m/%d/%Y"), format = "%Y"))
+patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded, format="%m/%d/%Y"), format = "%m"))
+patientDF$monthFundedWord <- strftime(as.Date(patientDF$Date.Funded, format="%m/%d/%Y"), format = "%b")
 ```
 
 We take a look at the cost distribution. Following are two histograms of cost with bin-width 500, 50 respectively. As we see majority of the "Cost" values are in range 0-500. i.e., most patient funding needed is less than USD 500.
@@ -121,7 +121,7 @@ Now, we explore Number of days it took to fund patients. Using the "Date.Posted"
 
 Following is a summary of number of days it took to successfully fund patients. On average it took just 3.271 days to fund patients.
 ```{r, echo=FALSE}
-patientDF$numDaysFunded <- as.numeric(as.Date(patientDF$Date.Funded) - as.Date(patientDF$Date.Posted))
+patientDF$numDaysFunded <- as.numeric(as.Date(patientDF$Date.Funded, format="%m/%d/%Y") - as.Date(patientDF$Date.Posted, format="%m/%d/%Y"))
 #nonNADaysFundedData = patientDF[!is.na(patientDF$numDaysFunded),]
 nonNADaysFundedData = subset(patientDF, !is.na(patientDF$numDaysFunded))
 summary(nonNADaysFundedData$numDaysFunded)
@@ -170,7 +170,7 @@ Following is a consolidated view of all patients funded during Watsi's existence
 A bit surprising is September, which is the second most philanthropic month in this data set.  
 
 ```{r, echo=FALSE}
-patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded), format = "%m"))
+patientDF$monthFunded <- as.numeric(strftime(as.Date(patientDF$Date.Funded, format= '%m/%d/%Y'), format = "%m"))
 
 pbyMonthFunded <- group_by(patientDF, monthFunded)
 pcountByMonthFunded <- summarise(pbyMonthFunded, count = n())
@@ -230,6 +230,31 @@ ggplot(data = pbyYearFunded, aes(x = yearFunded, y = count)) +
   geom_text(aes(y=467, label="2016. Until Feb.", x= 2016), colour="green", vjust = -0.4, fontface = 'plain')
 ```
 
-There are a couple of parameters that are still being processed - gender, adult/child. These extra parameters will be interesting to explore. Collecting gender data is straightforward, counting pronouns from the profiles give an easy way to accurately estimate gender. Gender data can answer questions if in the data set, people are more likely to be more philanthropic towards a particular gender.
+Now we look at gender data. We collected the gender data by counting pronouns from the profile pages of the patients. The exercise is straightforward, find the script at [Github](https://github.com/muddana/watsi_patient_data/blob/master/watsi_profile_scraper.rb "gender ruby script").
 
-However, collecting the data about a patient is adult/child is a bit more tricky. There are multiple ways to address this ranging from image analysis to crowd-sourcing. We are working on a manual tagging of the data using friends(from Facebook). Since the number of data points is ~5500, this data can be tagged by 20 people, each tagging 250 pictures. Data about adult/child can answer a similar question(s) - are people are more likely to fund a child compared to an adult ?
+Following are the means for number of days it took to fund a Male and a Female patient. The mean number of days needed to fund a male patient is slightly more compared to that of female patients. The difference between the two means is 0.047.
+
+```{r, echo= FALSE}
+summaryNumDaysFunded_byGender <- patientDF %>%
+  filter(!is.na(numDaysFunded)) %>%
+  group_by(Gender) %>%
+  summarise(meanNumDaysFunded = round(mean(numDaysFunded), digits=3), count = n())
+```
+
+```{r, echo= FALSE, fig.width=6, fig.height=4}
+ggplot(data = summaryNumDaysFunded_byGender, aes(x = Gender, y = meanNumDaysFunded)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(x=Gender, y=meanNumDaysFunded, ymax=meanNumDaysFunded, label=meanNumDaysFunded, vjust = "outward" )) +
+  labs(title = "Mean number of days for funding") +
+  ylab("Mean number of days") +
+  theme(plot.title = eleText, axis.title = eleText) +
+  scale_x_discrete(labels=c("Female", "Male"))
+```
+
+```{r, echo=FALSE, eval=FALSE}
+require(lattice)
+barchart(meanNumDaysFunded ~ Country, groups=Gender, summaryNumDaysFunded_byGender, auto.key = list(columns = 2))
+```
+
+<!--
+However, collecting the data about a patient is adult/child is a bit more tricky. There are multiple ways to address this ranging from image analysis to crowd-sourcing. We are working on a manual tagging of the data using friends(from Facebook). Since the number of data points is ~5500, this data can be tagged by 20 people, each tagging 250 pictures. Data about adult/child can answer a similar question(s) - are people are more likely to fund a child compared to an adult ? -->
