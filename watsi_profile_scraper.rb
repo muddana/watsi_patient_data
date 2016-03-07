@@ -35,17 +35,11 @@ def determine_gender(text)
 	end
 end
 
-puts determine_gender( get_text("https://watsi.org/profile/571f2fd8bc5a"))
+#puts determine_gender( get_text("https://watsi.org/profile/571f2fd8bc5a"))
 
-if false
-	urls = IO.readlines("watsi_patient_url.txt")
-	#puts urls.size
-	#genderResults = Array.new()
-	urls.each do |u|
-		puts determine_gender( get_text(u) )
-		sleep(4)
-	end
-	#genderResults.each do |g|
-	#	puts g
-	#end
+urls = IO.readlines("watsi_patient_url.txt")
+urls.each do |u|
+	puts determine_gender( get_text(u) )
+	# sleep for few seconds to not ambush watsi's servers. Be nice!
+	sleep(4)
 end
