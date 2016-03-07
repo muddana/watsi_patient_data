@@ -230,7 +230,7 @@ ggplot(data = pbyYearFunded, aes(x = yearFunded, y = count)) +
   geom_text(aes(y=467, label="2016. Until Feb.", x= 2016), colour="green", vjust = -0.4, fontface = 'plain')
 ```
 
-Now we look at gender data. We collected the gender data by counting pronouns from the profile pages of the patients. The exercise is straightforward, find the script at [Github](https://github.com/muddana/watsi_patient_data/blob/master/watsi_profile_scraper.rb "gender ruby script").
+Finally we look at gender data. We collected the gender data by counting pronouns from the profile pages of the patients. The exercise is straightforward, find the script at [Github](https://github.com/muddana/watsi_patient_data/blob/master/watsi_profile_scraper.rb "gender ruby script").
 
 Following are the means for number of days it took to fund a Male and a Female patient. The mean number of days needed to fund a male patient is slightly more compared to that of female patients. The difference between the two means is 0.047.
 
@@ -241,7 +241,7 @@ summaryNumDaysFunded_byGender <- patientDF %>%
   summarise(meanNumDaysFunded = round(mean(numDaysFunded), digits=3), count = n())
 ```
 
-```{r, echo= FALSE, fig.width=6, fig.height=4}
+```{r, echo= FALSE, fig.width=5, fig.height=4}
 ggplot(data = summaryNumDaysFunded_byGender, aes(x = Gender, y = meanNumDaysFunded)) +
   geom_bar(stat = "identity") +
   geom_text(aes(x=Gender, y=meanNumDaysFunded, ymax=meanNumDaysFunded, label=meanNumDaysFunded, vjust = "outward" )) +
