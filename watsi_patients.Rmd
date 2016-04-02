@@ -1,5 +1,5 @@
 ---
-title: "Draft : watsi's patient data exploration"
+title: "Watsi's patient data exploration"
 output: html_document
 ---
 
@@ -258,3 +258,7 @@ barchart(meanNumDaysFunded ~ Country, groups=Gender, summaryNumDaysFunded_byGend
 
 <!--
 However, collecting the data about a patient is adult/child is a bit more tricky. There are multiple ways to address this ranging from image analysis to crowd-sourcing. We are working on a manual tagging of the data using friends(from Facebook). Since the number of data points is ~5500, this data can be tagged by 20 people, each tagging 250 pictures. Data about adult/child can answer a similar question(s) - are people are more likely to fund a child compared to an adult ? -->
+
+One of the bigger surprises in the watsi data is the short periods of funding for each patient. As notice, 50% of the patients get funded within 2 days. Another surprise was after December, September seems to be the most philanthropic month. 
+
+Watsi is on a growth trajectory helping people and improving their quality of life.
